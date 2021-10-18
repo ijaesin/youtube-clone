@@ -3,14 +3,15 @@ import { List, Avatar, Row, Col } from 'antd';
 import Axios from 'axios';
 import SideVideo from './Sections/SideVideo';
 import Subscribe from './Sections/Subscribe';
-
+import Comment from './Sections/Comment';
 
 function VideoDetailPage(props) {
   const [VideoDetail, setVideoDetail] = useState([]);
+  const [Comments, setComments] = useState([]);
+  const videoId = props.match.params.videoId;
+  const variable = { videoId: videoId }
 
   useEffect(() => {
-    const videoId = props.match.params.videoId;
-    const variable = { videoId: videoId }
     
     Axios.post('/api/video/getVideoDetail', variable)
       .then(res => {
@@ -20,7 +21,20 @@ function VideoDetailPage(props) {
           alert('Failed to get video detail.')
         }
       })
+
+    Axios.post('/api/comment/getComments', variable)
+      .then(res => {
+        if (res.data.success) {
+          setComments(res.data.comments);
+        } else {
+          alert('Failed to get Comments.')
+        }
+      })
   }, [])
+
+  const refreshFunction = (newComment) => {
+    setComments(Comments.concat(newComment));
+  }
 
   if(VideoDetail.writer) {    
     return (
@@ -38,6 +52,8 @@ function VideoDetailPage(props) {
                   description={VideoDetail.description}
                 />
               </List.Item>
+
+              <Comment refreshFunction={refreshFunction} commentList={Comments} postId={videoId}/>
             </div>
           </Col>
           <Col lg={6} xs={24}>
